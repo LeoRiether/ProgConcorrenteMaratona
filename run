@@ -1,0 +1,13 @@
+#! /bin/bash
+
+gcc \
+	-g \
+	-pthread \
+	-Wall -pedantic -Wextra -Wshadow \
+	-fsanitize=address,undefined \
+	-o out \
+    $1
+
+shift
+./out $@
+
