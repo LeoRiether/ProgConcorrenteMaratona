@@ -1,0 +1,17 @@
+digraph {
+	rankdir = LR;
+	{ rank=same; pensando; placar }
+	pensando [label="Pensando"];
+	solucao [label="Achou Solução"];
+	escrevendo [label="Escrevendo Solução"];
+	placar [label="Olhando Placar"]
+
+	solucao -> escrevendo [label="pegou_pc"]
+	solucao -> pensando [label="nao_pegou_pc"]
+	pensando -> solucao [label="tempo"]
+	escrevendo -> pensando [label="saiu_do_pc"]
+	pensando -> escrevendo [label="chamado_para_o_pc"]
+
+	pensando -> placar
+	placar -> pensando
+} 
