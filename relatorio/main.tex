@@ -1,0 +1,79 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{sectsty}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{xpatch}
+\usepackage{realboxes}
+\usepackage{hyperref}
+\usepackage[portuguese]{babel}
+\usepackage{biblatex} %Imports biblatex package
+\addbibresource{bibliography.bib}
+\usepackage{subfig}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\definecolor{mygray}{rgb}{0.88,0.88,0.88}
+\lstset{
+  basicstyle=\ttfamily,
+  backgroundcolor=\color{mygray},
+}
+\makeatletter
+\xpretocmd\lstinline
+  {%
+   \bgroup\fboxsep=1pt
+   \Colorbox{mygray}\bgroup\kern-\fboxsep\vphantom{\ttfamily\char`\\y}%
+   \appto\lst@DeInit{\kern-\fboxsep\egroup\egroup}%
+  }{}{}
+\makeatother
+
+% Define \code
+\newcommand{\code}{\lstinline[mathescape=true]}
+
+% Define \floor
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\title{ Programação Concorrente 2021/1 \\
+\Large{ Trabalho Final }}
+\author{ Leonardo Alves Riether \\ 190032413 }
+\date{\today}
+
+\begin{document}
+\maketitle
+\pagebreak
+
+% Optional TOC
+% \tableofcontents
+% \pagebreak
+
+%--Paper--
+
+\section{Introdução}
+
+Lorem Impsum
+
+\section{Problema Proposto}
+O contexto do problema proposto para o trabalho é o de uma Maratona de Programação, estilo Maratona SBC de Programação\cite{maratonasbc} ou ICPC\cite{icpc}.
+
+\section{Solução}
+\section{Conclusão}
+
+\medskip
+\printbibliography
+
+\end{document}
