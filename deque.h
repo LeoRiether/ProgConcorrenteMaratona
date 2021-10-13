@@ -129,6 +129,7 @@ void* d_pop_front(deque_t* d) {
 // Funcões utilizadas apenas para testar a implementação do deque
 //
 
+#ifdef TEST
 deque_t global_d;
 
 void __print_stats() {
@@ -171,5 +172,6 @@ void __popf() {
 
 	if (x) free(x);
 }
+#endif
 
 #endif
