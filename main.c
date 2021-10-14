@@ -154,9 +154,25 @@ void* competidor(void* arg) {
 			printf("[time %d] O competidor %d recebeu um evento %s (payload=%d)\n",
 					team[id], id, evento2str[evt.tipo], evt.payload);
 
+			// TODO: deletar
+			time_t timer;
+			struct tm* tm_info;
+			timer = time(NULL);
+			tm_info = localtime(&timer);
+			char buffer[64];
+			strftime(buffer, 26, "%H:%M:%S", tm_info);
+			puts(buffer);
+
 			// E tratamos o evento de acordo com o estado atual do competidor,
 			// atualizando o estado de acordo com o valor de retorno do handler
 			competidor_st st = state[id];
+
+			if (st == Pensando && evt.tipo == Alarme && rand_int(0, 9) <= 2) {
+				// Reutilizamos o alarme de "achar a solução de uma questão" para "quer olhar o placar"
+				// com 20% de probabilidade
+				st = OlhandoPlacar;
+			}
+
 			if (st == Pensando)
 				state[id] = pensando_handler(id, &evt);
 			else if (st == Escrevendo)
@@ -179,7 +195,6 @@ void* competidor(void* arg) {
 
 void competidor_init(int id) {
 	// Competidor começa a pensar em uma questão
-	// TODO: ele pode querer olhar o placar tbm
 	alarme_id[id] = acordar_em(rand_int(4, 7), id);
 }
 
@@ -206,6 +221,10 @@ competidor_st pensando_handler(int id, evento_t* evt) {
 			alarme_id[id] = acordar_em(rand_int(4, 7), id);
 		}
 		m_unlock(&quer_computador[team[id]]);
+	} else if (evt->tipo == Placar) {
+		// TODO: e se uma pessoa mandou um evento "Placar" enquanto nós tínhamos o computador,
+		// mas o evento só chegou agora?
+		ensure(false, "putz");
 	}
 
 	return new_st;
@@ -223,6 +242,9 @@ competidor_st escrevendo_handler(int id, evento_t* evt) {
 		m_unlock(&computador[team[id]]);
 		m_unlock(&quer_computador[team[id]]);
 
+		// Volta a pensar em um problema
+		alarme_id[id] = acordar_em(rand_int(4, 7), id);
+
 		new_st = Pensando;
 	} else if (evt->tipo == Placar) {
 		// Cancelamos o evento de "terminar de escrever o código", por enquanto
@@ -232,7 +254,7 @@ competidor_st escrevendo_handler(int id, evento_t* evt) {
 		int outro = evt->payload;
 
 		sem_post(&permissao_placar[outro]);
-		printf("[team %d] %d esperando para voltar a escrever o código...\n", team[id], id);
+		printf("[time %d] %d esperando para voltar a escrever o código...\n", team[id], id);
 		m_unlock(&sinal[id].lock); // não é necessário ficar com esse lock
 		sem_wait(&volta_para_pc[id]);
 		m_lock(&sinal[id].lock);
@@ -252,7 +274,52 @@ competidor_st escrevendo_handler(int id, evento_t* evt) {
 	return new_st;
 }
 
-competidor_st olhando_placar_handler(int id, evento_t* evt) {
+void olhar_placar(int id) {
+	printf("[time %d] %d está olhando o placar...\n", team[id], id);
+	sleep(rand_int(1, 3));
+}
 
-	return OlhandoPlacar;
+competidor_st olhando_placar_handler(int id, evento_t* evt) {
+	competidor_st new_st = Pensando;
+
+	m_lock(&quer_computador[team[id]]);
+	if (m_trylock(&computador[team[id]]) == 0) {
+		// Conseguimos pegar o computador
+		no_computador[team[id]] = id;
+
+		olhar_placar(id);
+
+		// Libera o computaodr
+		m_unlock(&computador[team[id]]);
+
+		// Volta a pensar em algum problem
+		alarme_id[id] = acordar_em(rand_int(4, 7), id);
+	} else {
+		// Pedimos para quem está usando o computador para que ceda o acesso
+
+		// `id` do membro do time que está no computador
+		int outro = no_computador[team[id]];
+		printf("[time %d] %d quer olhar o placar e vai pedir permissão a %d\n",
+				team[id], id, outro);
+
+		m_lock(&sinal[outro].lock); // lock para acessar eventos[outro]
+
+		// Criamos o evento "Placar" para avisar o `outro` competidor
+		evento_t* pevt = (evento_t*)malloc(sizeof(evento_t));
+		*pevt = (evento_t) {
+			.tipo = Placar,
+			.payload = id,
+		};
+
+		d_push_front(&eventos[outro], (void*)pevt);
+
+		m_unlock(&sinal[outro].lock);
+
+		sem_wait(&permissao_placar[id]); // espera `id` ter a permissão de `outro` para usar o PC
+		olhar_placar(id);
+		sem_post(&volta_para_pc[outro]); // dá permissão para o `outro` voltar para o PC
+	}
+	m_unlock(&quer_computador[team[id]]);
+
+	return new_st;
 }
