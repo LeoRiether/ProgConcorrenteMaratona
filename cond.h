@@ -31,6 +31,7 @@ void c_destroy(cond_t* c) {
 
 // "pthread_mutex_lock" é um nome muito longo...
 #define m_lock pthread_mutex_lock
+#define m_trylock pthread_mutex_trylock
 #define m_unlock pthread_mutex_unlock
 
 #endif
