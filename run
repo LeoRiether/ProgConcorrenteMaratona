@@ -2,6 +2,7 @@
 
 gcc \
 	-g \
+	-DCOLOR \
 	-pthread \
 	-Wall -pedantic -Wextra -Wshadow \
 	-fsanitize=address,undefined \
