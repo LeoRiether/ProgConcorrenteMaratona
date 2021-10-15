@@ -21,13 +21,16 @@
 // Quantos competidores existem por time
 #define SZ_TIME 3
 
+// Quantos competidores no total
 #define N (TIMES * SZ_TIME)
+
+// Quantos competidores podem ficar na sala do coffee break simultaneamente
+#define MAX_COFFEE 2
 
 // gera um número aleatório em [low, high]
 static inline int rand_int(int low, int high) {
 	return rand() % (high - low + 1) + low;
 }
-
 
 // Para propósitos de debugging (aka deixar rodando por bastante tempo e ver se deu deadlock)
 void print_time() {
@@ -62,12 +65,16 @@ pthread_mutex_t computador[TIMES]; // computador[i] = lock de acesso ao computad
 deque_t esperando_pc[TIMES]; // fila de pessoas de um time esperando para usar o PC.
 							 // para acessar o deque, deve-se estar de posse do lock quer_computador[time]
 
+sem_t coffee_break;
+
 pthread_barrier_t comeco_da_prova;
 
 void* competidor(void*);
 
 void init() {
+	color_init();
 	pthread_barrier_init(&comeco_da_prova, 0, N);
+	sem_init(&coffee_break, 0, MAX_COFFEE);
 	for (int i = 0; i < TIMES; i++) {
 		pthread_mutex_init(&computador[i], 0);
 		pthread_mutex_init(&quer_computador[i], 0);
@@ -81,6 +88,7 @@ void init() {
 
 void destroy() {
 	pthread_barrier_destroy(&comeco_da_prova);
+	sem_destroy(&coffee_break);
 	for (int i = 0; i < TIMES; i++) {
 		pthread_mutex_destroy(&computador[i]);
 		pthread_mutex_destroy(&quer_computador[i]);
@@ -136,7 +144,7 @@ int acordar_em(int delay, int id) {
 void competidor_init(int id);
 void achou_solucao(int id);
 void escreve_codigo(int id);
-void olhar_placar(int id);
+void entrar_no_coffee_break(int id);
 
 // Implementação do comportamento de um competidor
 void* competidor(void* arg) {
@@ -167,11 +175,12 @@ void* competidor(void* arg) {
 
 		print_time();
 
-		if (evt.tipo == Alarme && rand_int(0, 9) <= 2)
-			olhar_placar(id);
-		else if (evt.tipo == Alarme)
+		if (evt.tipo == Alarme && rand_int(0, 9) <= 2) {
+			 // 20% de chance do competidor ir para o coffee break em vez de solucionar uma questão
+			entrar_no_coffee_break(id);
+		} else if (evt.tipo == Alarme) {
 			achou_solucao(id);
-		else if (evt.tipo == PermissaoComputador) {
+		} else if (evt.tipo == PermissaoComputador) {
 			// cancela o alarme, porque o competidor vai parar de pensar em outro problema
 			// para escrever código
 			m_lock(&sinal[id].lock);
@@ -264,6 +273,21 @@ void achou_solucao(int id) {
 	}
 }
 
-void olhar_placar(int id) {
-	printf("Competidor %d resolveu ir olhar o placar, mas acaba de lembrar que essa feature ainda não foi implementada!\n", id);
+void entrar_no_coffee_break(int id) {
+	sem_wait(&coffee_break);
+
+	color_begin();
+	printf("[time %d] %d está no ", team[id], id);
+	yellow_bg(); printf("coffee break"); reset();
+	printf("...\n");
+	reset();
+	sleep(rand_int(3, 7));
+
+	color_begin();
+	printf("[time %d] %d voltou do ", team[id], id);
+	yellow_bg(); printf("coffee break"); reset();
+	printf("\n");
+	reset();
+
+	sem_post(&coffee_break);
 }
