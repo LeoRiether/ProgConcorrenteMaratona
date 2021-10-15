@@ -16,7 +16,7 @@
 #include "alarme.h"
 
 // Quantos times participam da competição
-#define TIMES 1
+#define TIMES 3
 
 // Quantos competidores existem por time
 #define SZ_TIME 3
@@ -25,7 +25,7 @@
 #define N (TIMES * SZ_TIME)
 
 // Quantos competidores podem ficar na sala do coffee break simultaneamente
-#define MAX_COFFEE 2
+#define MAX_COFFEE 3
 
 // gera um número aleatório em [low, high]
 static inline int rand_int(int low, int high) {
@@ -309,13 +309,14 @@ void entrar_no_coffee_break(int id) {
 
 void* juiz() {
 	color_begin();
-	green_bg(); printf("Juíz pronto"); reset(); 
+	green_bg(); printf("Juíz pronto"); reset();
 	printf("\n");
 	reset();
 
 	pthread_barrier_wait(&comeco_da_prova);
 
 	for (;;) {
+		// Esperamos até que a fila de submissões não esteja vazia
 		m_lock(&cond_juiz.lock);
 		while (fila_juiz.len == 0)
 			pthread_cond_wait(&cond_juiz.cond, &cond_juiz.lock);
@@ -326,14 +327,15 @@ void* juiz() {
 
 		m_unlock(&cond_juiz.lock);
 
-		// Julgamos a submissão do time `time_id`
-		sleep(rand_int(8, 12));
+		// E julgamos a submissão do time `time_id`
+		sleep(rand_int(0, 10));
 
 		static const char* vereditos[] = { "AC", "TLE", "WA" };
 		static void (*bgcolor[])() = { &green_bg, &cyan_bg, &red_bg };
 
-		int v = rand_int(0, 2);
+		int v = rand_int(0, 2); // índice do veretido
 
+		// Impressão do resultado
 		color_begin();
 		cyan_bg(); printf("[juiz]"); reset();
 		printf(" o time %d recebeu um ", time_id);
