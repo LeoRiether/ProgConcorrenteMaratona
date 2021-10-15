@@ -36,9 +36,17 @@ void yellow_bg() {
 	m_lock(&color_lock);
 	printf("\033[43m\033[30m");
 }
-void blue_bg() {
+void green_bg() {
 	m_lock(&color_lock);
-	printf("\033[44m\033[30m");
+	printf("\033[102m\033[30m");
+}
+void red_bg() {
+	m_lock(&color_lock);
+	printf("\033[101m\033[30m");
+}
+void cyan_bg() {
+	m_lock(&color_lock);
+	printf("\033[46m\033[30m");
 }
 void reset() {
 	printf("\033[0m");
@@ -51,7 +59,9 @@ void green() { m_lock(&color_lock); }
 void yellow() { m_lock(&color_lock); }
 void cyan() { m_lock(&color_lock); }
 void yellow_bg() { m_lock(&color_lock); }
-void blue_bg() { m_lock(&color_lock); }
+void green_bg() { m_lock(&color_lock); }
+void red_bg() { m_lock(&color_lock); }
+void cyan_bg() { m_lock(&color_lock); }
 void reset() { m_unlock(&color_lock); }
 #endif
 

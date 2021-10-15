@@ -44,13 +44,8 @@ void print_time() {
 }
 
 const char* evento2str[] = { "Alarme", "PermissaoComputador" };
-typedef enum tipo_evento_t {
+typedef enum evento_t {
 	Alarme, PermissaoComputador
-} tipo_evento_t;
-
-typedef struct evento_t {
-	tipo_evento_t tipo;
-	int payload;
 } evento_t;
 
 int team[N]; // team[i] = id do time do i-ésimo competidor
@@ -65,15 +60,19 @@ pthread_mutex_t computador[TIMES]; // computador[i] = lock de acesso ao computad
 deque_t esperando_pc[TIMES]; // fila de pessoas de um time esperando para usar o PC.
 							 // para acessar o deque, deve-se estar de posse do lock quer_computador[time]
 
-sem_t coffee_break;
+sem_t coffee_break; // Quantas pessoas ainda podem entrar no coffee break
+
+cond_t cond_juiz;
+deque_t fila_juiz; // Fila de submissões que devem ser julgadas
 
 pthread_barrier_t comeco_da_prova;
 
 void* competidor(void*);
+void* juiz();
 
 void init() {
 	color_init();
-	pthread_barrier_init(&comeco_da_prova, 0, N);
+	pthread_barrier_init(&comeco_da_prova, 0, N + 1); // N competidores em 1 juíz
 	sem_init(&coffee_break, 0, MAX_COFFEE);
 	for (int i = 0; i < TIMES; i++) {
 		pthread_mutex_init(&computador[i], 0);
@@ -84,6 +83,9 @@ void init() {
 		c_init(&sinal[i]);
 		d_init(&eventos[i]);
 	}
+
+	c_init(&cond_juiz);
+	d_init(&fila_juiz);
 }
 
 void destroy() {
@@ -98,15 +100,19 @@ void destroy() {
 		c_destroy(&sinal[i]);
 		d_destroy(&eventos[i]);
 	}
+	c_destroy(&cond_juiz);
+	d_destroy(&fila_juiz);
 }
 
-int main(int argv, char* argc[]) {
+int main() {
 
 	srand(time(NULL));
 
 	init();
 
 	pthread_t competidores[N];
+	pthread_t tjuiz;
+	pthread_create(&tjuiz, NULL, &juiz, NULL);
 	for (int t = 0; t < TIMES; t++) {
 		for (int c = 0; c < SZ_TIME; c++) {
 			int id = t * SZ_TIME + c;
@@ -133,13 +139,14 @@ int acordar_em(int delay, int id) {
 	// Passado esse tempo, será dado um signal em `sinal[id]` e
 	// será colocado o elemento `evt` no deque `eventos[i]`.
 	evento_t* evt = (evento_t*)malloc(sizeof(evento_t));
-	*evt = (evento_t) {
-		.tipo = Alarme,
-		.payload = 0,
-	};
+	*evt = Alarme;
 	int id_alarme = alarme(delay, &sinal[id], &eventos[id], evt);
 	return id_alarme;
 }
+
+//
+// Comportamento do competidor
+//
 
 void competidor_init(int id);
 void achou_solucao(int id);
@@ -170,17 +177,17 @@ void* competidor(void* arg) {
 			free(evt_pointer);
 		m_unlock(&sinal[id].lock);
 
-		printf("[time %d] O competidor %d recebeu um evento %s (payload=%d)\n",
-				team[id], id, evento2str[evt.tipo], evt.payload);
+		printf("[time %d] O competidor %d recebeu um evento %s\n",
+				team[id], id, evento2str[evt]);
 
 		print_time();
 
-		if (evt.tipo == Alarme && rand_int(0, 9) <= 2) {
+		if (evt == Alarme && rand_int(0, 9) <= 2) {
 			 // 20% de chance do competidor ir para o coffee break em vez de solucionar uma questão
 			entrar_no_coffee_break(id);
-		} else if (evt.tipo == Alarme) {
+		} else if (evt == Alarme) {
 			achou_solucao(id);
-		} else if (evt.tipo == PermissaoComputador) {
+		} else if (evt == PermissaoComputador) {
 			// cancela o alarme, porque o competidor vai parar de pensar em outro problema
 			// para escrever código
 			m_lock(&sinal[id].lock);
@@ -214,7 +221,13 @@ void escreve_codigo(int id) {
 
 	cyan(); printf("[time %d] %d acabou de escrever a solução e vai submetê-la no juíz\n", t, id); reset();
 
-	// TODO: fila de submissões
+	// Envia o código ao juíz
+	m_lock(&cond_juiz.lock);
+		int* team_id = (int*)malloc(sizeof(int));
+		*team_id = t;
+		d_push_back(&fila_juiz, (void*)team_id);
+		pthread_cond_signal(&cond_juiz.cond);
+	m_unlock(&cond_juiz.lock);
 
 	// Libera o computador do time `t`
 	m_lock(&quer_computador[t]);
@@ -229,7 +242,7 @@ void escreve_codigo(int id) {
 			free(ptr);
 
 			if (outro == id) {
-				green(); printf("[time %d] %d vai escrever outra solução e já está no computador\n", t, id); reset();
+				green(); printf("[time %d] %d já tem outra solução pronta!\n", t, id); reset();
 				m_unlock(&quer_computador[t]);
 				escreve_codigo(id);
 				return;
@@ -240,10 +253,7 @@ void escreve_codigo(int id) {
 			m_lock(&sinal[outro].lock);
 				// Coloca um evento do tipo "PermissaoComputador" na fila de eventos de `outro`
 				evento_t* evt = (evento_t*)malloc(sizeof(evento_t));
-				*evt = (evento_t) {
-					.tipo = PermissaoComputador,
-					.payload = 0,
-				};
+				*evt = PermissaoComputador;
 				d_push_back(&eventos[outro], (void*)evt);
 
 				// E avisa que há um evento
@@ -281,6 +291,7 @@ void entrar_no_coffee_break(int id) {
 	yellow_bg(); printf("coffee break"); reset();
 	printf("...\n");
 	reset();
+
 	sleep(rand_int(3, 7));
 
 	color_begin();
@@ -290,4 +301,44 @@ void entrar_no_coffee_break(int id) {
 	reset();
 
 	sem_post(&coffee_break);
+}
+
+//
+// Comportamento do Juíz Automático
+//
+
+void* juiz() {
+	color_begin();
+	green_bg(); printf("Juíz pronto"); reset(); 
+	printf("\n");
+	reset();
+
+	pthread_barrier_wait(&comeco_da_prova);
+
+	for (;;) {
+		m_lock(&cond_juiz.lock);
+		while (fila_juiz.len == 0)
+			pthread_cond_wait(&cond_juiz.cond, &cond_juiz.lock);
+
+		void* ptr = d_pop_front(&fila_juiz);
+		int time_id = *(int*)ptr;
+		free(ptr);
+
+		m_unlock(&cond_juiz.lock);
+
+		// Julgamos a submissão do time `time_id`
+		sleep(rand_int(8, 12));
+
+		static const char* vereditos[] = { "AC", "TLE", "WA" };
+		static void (*bgcolor[])() = { &green_bg, &cyan_bg, &red_bg };
+
+		int v = rand_int(0, 2);
+
+		color_begin();
+		cyan_bg(); printf("[juiz]"); reset();
+		printf(" o time %d recebeu um ", time_id);
+		bgcolor[v](); printf("%s", vereditos[v]); reset();
+		printf("!\n");
+		reset();
+	}
 }
