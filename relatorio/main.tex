@@ -24,6 +24,13 @@
 \lstset{
   basicstyle=\ttfamily,
   backgroundcolor=\color{mygray},
+  texcl=false,
+  language=C,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{green}\ttfamily,
+  stringstyle=\color{mauve},
 }
 \makeatletter
 \xpretocmd\lstinline
@@ -69,40 +76,82 @@
 Lorem Impsum
 
 \section{Problema Proposto}
-O contexto do problema proposto para o trabalho é o de uma maratona de programação, estilo Maratona SBC
-de Programação\cite{maratonasbc} ou ICPC\cite{icpc}.
+    O contexto do problema proposto para o trabalho é o de uma maratona de programação, estilo Maratona
+    SBC de Programação\cite{maratonasbc} ou ICPC\cite{icpc}.
 
-Em uma maratona, vários times de três competidores possuem uma prova para resolver. À medida que os
-programadores encontram as soluções para os problemas, eles escrevem um código que (se tudo der certo)
-responde corretamente todos os casos de teste e enviam ao juíz automático, que demora um tempo
-considerável para gerar o veredito (aceita ou rejeita a solução).
+    Em uma maratona, vários times de três competidores possuem uma prova com diversos problemas para
+    resolver.  À medida que os programadores encontram as soluções, eles precisam escrever um programa
+    para cada questão que resolva o problema e passe em todos os casos de teste. Ao terminar de escrever
+    um código, o competidor a envia ao juíz automático, que demora um tempo considerável para gerar o
+    veredito (aceita ou rejeita a solução).
 
-Cada time possui apenas um computador, por isso no máximo uma pessoa do time pode utilizar o computador
-em um dado instante de tempo\footnote{Nas últimas competições, virtuais, esse não foi o caso, porém nas
-competições presenciais tradicionais isso é verdade.}. Além disso, enquanto uma pessoa está escrevendo
-código, outra pode querer olhar o placar, para ter uma noção de quais problemas foram resolvidos por
-muitos times e ver a sua colocação atual. Como olhar o placar não demora muito tempo, o membro do time
-que está de posse do computador deve ceder seu acesso o quanto antes ao membro que deseja olhar o placar
-(possivelmente antes de terminar sua solução). Assim que um competidor terminar de olhar o placar, o
-outro deve voltar ao computador e terminar de escrever o código.
+    Cada time possui apenas um computador, por isso no máximo uma pessoa do time pode utilizá-lo em um
+    dado instante de tempo\footnote{Nas últimas competições, virtuais, esse não foi o caso, porém em
+    competições presenciais tradicionais isso é verdade.}. Para deixar a utilização do computador mais
+    justa, os times seguem a seguinte estratégia: se membro do time encontrar a solução para uma questão,
+    mas outra pessoa já está no computador, ele escreve seu nome em uma folha de papel, que servirá de
+    fila. Assim que a pessoa de posse do computador acaba de escrever o código e o envia ao juíz, ela
+    verifica a folha de papel e chama o primeiro da fila, caso ela não esteja vazia. Como um competidor
+    pode solucionar várias questões antes de ter acesso ao computador, ele pode colocar seu nome várias
+    vezes na folha, uma vez para cada questão solucionada.
 
-Para que o começo da prova não seja injusto, cada competidor aguarda até que todos estejam prontos para
-abrir a prova.
+    Outra ação que os competidores podem tomar durante a prova é ir para a sala de coffee break. Visto
+    que não há muito espaço, um número pequeno de pessoas pode ficar nela simultaneamente. Se um
+    indivíduo resolver ir para o coffee break enquanto a sala está cheia, ele fica esperando na porta até
+    que consiga entrar.
 
-A fim de aumentar o grau de concorrência, é permitido que os times possuam mais que três membros.
+    Para que o começo da prova não seja injusto, cada competidor aguarda até que todos estejam prontos
+    para começar a prova.
+
+    A fim de aumentar o grau de concorrência, é permitido que os times possuam mais de três membros.
+
+    Por fim, também é proposta a implementação do juíz automático, que possui uma fila de submissões a
+    serem julgadas. Todos os times enviam seus programas para o mesmo juíz, colocando-as no final da
+    fila. O juíz, por sua vez, julga as submissões assim que possível, retirando da fila na ordem FIFO
+    (first in, first out), e pode dar os vereditos AC (Accepted), TLE (Time Limit Exceeded) ou WA (Wrong
+    Answer).
+
+\section{Estrutura do Código}
+	A implementação em C foi compilada com o seguinte comando shell, incluído no código fonte no arquivo
+	\code{run}:
+
+	\begin{lstlisting}[language=bash, caption=run]
+gcc -DCOLOR -pthread -g \
+    -Wall -pedantic -Wextra -Wshadow -fsanitize=address,undefined \
+    -o out main.c
+	\end{lstlisting}
+
+	É possível omitir a flag \code{-DCOLOR}, caso o terminal não tenha suporte aos códigos de escape de
+	cor ANSI\cite{ansi_color}, mas a flag é recomendada, para deixar as mensagens de saída mais fáceis de
+	se identificar visualmente. Além disso, foi utilizado GCC versão 7.5.0.
+
+	O código foi dividido em módulos, mas a maior parte da implementação dos comportamentos descritos no
+	problema proposto está no arquivo \code{main.c}.
 
 \section{Solução}
 
-\subsection{Juíz Automático}
+\subsection{Comportamento dos Competidores}
+	No início do programa, são criadas $N$ threads, uma para cada competidor. Há várias variáveis
+	associadas ao comportamento dos competidores, % TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+	Há vários requerimentos que dizem respeito ao comportamento dos competidores.
 
-\subsection{Competidoresw}
+	\subsubsection{Acesso Exclusivo ao Computador}
+	
+	\subsubsection{}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics{fsm.png}
-    \caption{Caption}
-    \label{fig:my_label}
-\end{figure}
+	\subsubsection{Coffee Break}
+	O alarme que indica que um competidor conseguiu resolver uma questão foi reaproveitado para a
+	implementação do coffee break, para simplificar um pouco o código. Quando um evento do tipo
+	\code{Alarme} é recebido, há uma probabilidade de 20\% do competidor, em vez de resolver um problema,
+	resolver ir para a sala do coffee break. Quando isso acontece, é chamada a função
+	\code{entrar_no_coffee_break}, que utiliza o semáforo global \code{coffee_break} para permitir que no
+	máximo \code{MAX_COFFEE} pessoas entrem na sala.
+
+	Dentro dessa função, as threads dormem de 3 a 7 segundos, enquanto o competidor aproveita o coffee
+	break, depois executam um \code{sem_post} para sair da sala e retornam da função.
+
+
+\subsection{Comportamento do Juíz Automático}
 
 
 

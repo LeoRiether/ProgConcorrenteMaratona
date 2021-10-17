@@ -43,6 +43,9 @@ void print_time() {
 	puts(buffer);
 }
 
+//--------------------------------------------------------------
+// Definições de variáveis dos competidores e juíz automático
+//--------------------------------------------------------------
 const char* evento2str[] = { "Alarme", "PermissaoComputador" };
 typedef enum evento_t {
 	Alarme, PermissaoComputador
@@ -70,6 +73,9 @@ pthread_barrier_t comeco_da_prova;
 void* competidor(void*);
 void* juiz();
 
+//--------------------------------------------------------------
+// Inicialização e destruição das variáveis
+//--------------------------------------------------------------
 void init() {
 	color_init();
 	pthread_barrier_init(&comeco_da_prova, 0, N + 1); // N competidores em 1 juíz
@@ -104,6 +110,9 @@ void destroy() {
 	d_destroy(&fila_juiz);
 }
 
+//--------------------------------------------------------------
+// main
+//--------------------------------------------------------------
 int main() {
 
 	srand(time(NULL));
@@ -144,9 +153,9 @@ int acordar_em(int delay, int id) {
 	return id_alarme;
 }
 
-//
-// Comportamento do competidor
-//
+//--------------------------------------------------------------
+// Comportamento dos competidores
+//--------------------------------------------------------------
 
 void competidor_init(int id);
 void achou_solucao(int id);
@@ -177,10 +186,10 @@ void* competidor(void* arg) {
 			free(evt_pointer);
 		m_unlock(&sinal[id].lock);
 
-		printf("[time %d] O competidor %d recebeu um evento %s\n",
+		printf("[time %d] O competidor %d recebeu um evento do tipo %s\n",
 				team[id], id, evento2str[evt]);
 
-		print_time();
+		// print_time();
 
 		if (evt == Alarme && rand_int(0, 9) <= 2) {
 			 // 20% de chance do competidor ir para o coffee break em vez de solucionar uma questão
@@ -303,9 +312,9 @@ void entrar_no_coffee_break(int id) {
 	sem_post(&coffee_break);
 }
 
-//
-// Comportamento do Juíz Automático
-//
+//--------------------------------------------------------------
+// Comportamento do juíz automático
+//--------------------------------------------------------------
 
 void* juiz() {
 	color_begin();
