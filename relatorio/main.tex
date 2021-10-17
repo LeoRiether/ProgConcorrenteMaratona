@@ -59,6 +59,9 @@
 \Large{ Trabalho Final }}
 \author{ Leonardo Alves Riether \\ 190032413 }
 \date{\today}
+\date{\parbox{\linewidth}{\centering%
+  \today\endgraf\bigskip
+  \url{https://github.com/LeoRiether/ProgConcorrenteMaratona}}}
 
 \begin{document}
 \maketitle
@@ -131,7 +134,8 @@ seções, pode-se assumir que toda variável de condição é do tipo \code{stru
 mutex associado.
 
 \subsection{Comportamento dos Competidores}
-No início do programa, são criadas $N$ threads, uma para cada competidor. As variáveis associadas 
+No início do programa, são criadas $N$ threads, uma para cada competidor. A implementação das threads é
+detalhada nas próximas subseções.
 
 \subsubsection{Começo da Prova}
 Foi utilizada uma barreira (\code{pthread_barrier_t comeco_da_prova}) com $N + 1$ permissões para garantir que todos os competidores e o juíz
