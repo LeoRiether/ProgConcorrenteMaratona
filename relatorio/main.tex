@@ -140,7 +140,7 @@ estão prontos antes de começar a prova.
 \subsubsection{Implementação do Estado Pensando}
 Em um primeiro momento, poderíamos supor que, para implementar a ação "um competidor pensa em um
 problema até achar a solução", seria suficiente chamar um \code{sleep}. Considere, no entanto, a
-seguinte situação, onde há dois competidores do mesmo time, Alice e Bob:
+seguinte situação, onde Alice e Bob são competidores do mesmo time:
 
 \begin{itemize}
 	\item Alice resolve uma questão. Não há ninguém no computador, então ela começa a escrever o
@@ -158,7 +158,7 @@ Se Bob estivesse em um \code{sleep} quando Alice o chama, seria impossível impl
 Para resolver essa situação, cada competidor possui uma fila de eventos, nomeada \code{eventos[i]}, e
 uma variável de condição \code{sinal[i]}. Os eventos recebidos são do tipo \code{evento_t} e podem
 ser um \code{Alarme} ou uma \code{PermissaoComputador}. Desse modo, em vez do competidor pensar em
-uma questão enquanto está no \code{sleep}, é criada uma thread, chamada de alarme, pormeio da função
+uma questão enquanto está no \code{sleep}, é criada uma thread, chamada de alarme, por meio da função
 \code{acordar_em}, que envia um evento do tipo \code{Alarme} depois que um determinado tempo passa.
 Assim, a thread do competidor pode entrar em um \code{pthread_cond_wait} para esperar tanto um sinal
 de \code{Alarme} quanto uma \code{PermissaoComputador}, como no código abaixo.
@@ -185,6 +185,9 @@ for (;;) {
 		alarme_id[id] = acordar_em(rand_int(4, 11), id);
 	}
 	\end{lstlisting}
+
+	Além disso, quando Alice dá a permissão para Bob usar o PC, ela envia um evento do tipo
+	\code{PermissaoComputador} 
 
 	As threads alarme são definidas no arquivo \code{alarme.h}. 
 
@@ -222,6 +225,9 @@ for (;;) {
 	O juíz automático é implementado como uma thread \code{juiz}, que espera sinais da variável de
 	condição \code{cond_juiz} e tira submissões da fila \code{fila_juiz} para julgá-las. O processo de
 	julgamento é feito com um simples \code{sleep}.
+
+	Enquanto o juíz julga uma solução, ele não está de posse do lock da fila, para que os competidores
+	possam adquirir esse lock e colocar mais submissões na fila.
 
 
 	\section{Conclusão}
