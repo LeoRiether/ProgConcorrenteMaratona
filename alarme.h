@@ -9,7 +9,7 @@
 #include "cond.h"
 #include "deque.h"
 
-#define MAX_TIMERS 64
+#define MAX_TIMERS 128
 int next_timer_id;
 bool alarme_cancelado[MAX_TIMERS];
 pthread_mutex_t next_timer_lock = PTHREAD_MUTEX_INITIALIZER;

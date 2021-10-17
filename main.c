@@ -32,7 +32,7 @@ static inline int rand_int(int low, int high) {
 	return rand() % (high - low + 1) + low;
 }
 
-// Para propósitos de debugging (aka deixar rodando por bastante tempo e ver se deu deadlock)
+// Para propósitos de debugging (aka deixar rodando por bastante tempo e ver se deu deadlock (sei que não é assim que se prova a corretude de um algoritmo concorrente))
 void print_time() {
 	time_t timer;
 	struct tm* tm_info;
@@ -56,17 +56,18 @@ int team[N]; // team[i] = id do time do i-ésimo competidor
 cond_t sinal[N];
 deque_t eventos[N]; // eventos[i] = fila de eventos do i-ésimo competidor
 					// para acessar eventos[i], deve-se estar de posse do lock sinal[i].lock
-int alarme_id[N];
+
+int alarme_id[N]; // alarme_id[i] = id do alarme associado ao competidor `i`
 
 pthread_mutex_t quer_computador[TIMES]; // lock para que apenas uma pessoa tente entrar no computador por vez
-pthread_mutex_t computador[TIMES]; // computador[i] = lock de acesso ao computador do i-ésimo time
+bool alguem_no_pc[TIMES]; // alguem_no_pc[i] = existe algum competidor do time `i` usando o PC?
 deque_t esperando_pc[TIMES]; // fila de pessoas de um time esperando para usar o PC.
 							 // para acessar o deque, deve-se estar de posse do lock quer_computador[time]
 
 sem_t coffee_break; // Quantas pessoas ainda podem entrar no coffee break
 
-cond_t cond_juiz;
 deque_t fila_juiz; // Fila de submissões que devem ser julgadas
+cond_t cond_juiz; // Variável de condição associada à fila_juiz
 
 pthread_barrier_t comeco_da_prova;
 
@@ -81,7 +82,7 @@ void init() {
 	pthread_barrier_init(&comeco_da_prova, 0, N + 1); // N competidores em 1 juíz
 	sem_init(&coffee_break, 0, MAX_COFFEE);
 	for (int i = 0; i < TIMES; i++) {
-		pthread_mutex_init(&computador[i], 0);
+		alguem_no_pc[i] = 0;
 		pthread_mutex_init(&quer_computador[i], 0);
 		d_init(&esperando_pc[i]);
 	}
@@ -98,7 +99,6 @@ void destroy() {
 	pthread_barrier_destroy(&comeco_da_prova);
 	sem_destroy(&coffee_break);
 	for (int i = 0; i < TIMES; i++) {
-		pthread_mutex_destroy(&computador[i]);
 		pthread_mutex_destroy(&quer_computador[i]);
 		d_destroy(&esperando_pc[i]);
 	}
@@ -242,7 +242,7 @@ void escreve_codigo(int id) {
 	m_lock(&quer_computador[t]);
 		if (esperando_pc[t].len == 0) {
 			// Ninguém mais quer usar o PC
-			m_unlock(&computador[t]);
+			alguem_no_pc[t] = false;
 			printf("[time %d] o computador foi liberado\n", t);
 		} else {
 			// Uma pessoa da fila `esperando_pc[t]` quer escrever uma solução
@@ -277,9 +277,9 @@ void escreve_codigo(int id) {
 void achou_solucao(int id) {
 	int t = team[id];
 	m_lock(&quer_computador[t]);
-	if (m_trylock(&computador[t]) == 0) {
+	if (!alguem_no_pc[t]) {
 		// Conseguimos pegar o computador
-		m_unlock(&quer_computador[t]);
+		alguem_no_pc[t] = true;
 		escreve_codigo(id);
 	} else {
 		// Outro membro do time já está usando o computador.

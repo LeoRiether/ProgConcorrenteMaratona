@@ -8,7 +8,7 @@
 \usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
-\usepackage{xcolor}
+\usepackage[dvipsnames]{xcolor}
 \usepackage{listings}
 \usepackage{xpatch}
 \usepackage{realboxes}
@@ -29,8 +29,8 @@
   numbers=left,
   numberstyle=\tiny\color{gray},
   keywordstyle=\color{blue},
-  commentstyle=\color{green}\ttfamily,
-  stringstyle=\color{mauve},
+  commentstyle=\color{OliveGreen}\ttfamily,
+  stringstyle=\color{RedOrange}\ttfamily,
 }
 \makeatletter
 \xpretocmd\lstinline
@@ -76,68 +76,135 @@
 Lorem Impsum
 
 \section{Problema Proposto}
-    O contexto do problema proposto para o trabalho é o de uma maratona de programação, estilo Maratona
-    SBC de Programação\cite{maratonasbc} ou ICPC\cite{icpc}.
+O contexto do problema proposto para o trabalho é o de uma maratona de programação, estilo Maratona
+SBC de Programação\cite{maratonasbc} ou ICPC\cite{icpc}.
 
-    Em uma maratona, vários times de três competidores possuem uma prova com diversos problemas para
-    resolver.  À medida que os programadores encontram as soluções, eles precisam escrever um programa
-    para cada questão que resolva o problema e passe em todos os casos de teste. Ao terminar de escrever
-    um código, o competidor a envia ao juíz automático, que demora um tempo considerável para gerar o
-    veredito (aceita ou rejeita a solução).
+Em uma maratona, vários times de três competidores possuem uma prova com diversos problemas para
+resolver.  À medida que os programadores encontram as soluções, eles precisam escrever um programa
+para cada questão que resolva o problema e passe em todos os casos de teste. Ao terminar de escrever
+um código, o competidor a envia ao juíz automático, que demora um tempo considerável para gerar o
+veredito (aceita ou rejeita a solução).
 
-    Cada time possui apenas um computador, por isso no máximo uma pessoa do time pode utilizá-lo em um
-    dado instante de tempo\footnote{Nas últimas competições, virtuais, esse não foi o caso, porém em
-    competições presenciais tradicionais isso é verdade.}. Para deixar a utilização do computador mais
-    justa, os times seguem a seguinte estratégia: se membro do time encontrar a solução para uma questão,
-    mas outra pessoa já está no computador, ele escreve seu nome em uma folha de papel, que servirá de
-    fila. Assim que a pessoa de posse do computador acaba de escrever o código e o envia ao juíz, ela
-    verifica a folha de papel e chama o primeiro da fila, caso ela não esteja vazia. Como um competidor
-    pode solucionar várias questões antes de ter acesso ao computador, ele pode colocar seu nome várias
-    vezes na folha, uma vez para cada questão solucionada.
+Cada time possui apenas um computador, por isso no máximo uma pessoa do time pode utilizá-lo em um
+dado instante de tempo\footnote{Nas últimas competições, virtuais, esse não foi o caso, porém em
+competições presenciais tradicionais isso é verdade.}. Para deixar a utilização do computador mais
+justa, os times seguem a seguinte estratégia: se membro do time encontrar a solução para uma questão,
+mas outra pessoa já está no computador, ele escreve seu nome em uma folha de papel, que servirá de
+fila. Assim que a pessoa de posse do computador acaba de escrever o código e o envia ao juíz, ela
+verifica a folha de papel e chama o primeiro da fila, caso ela não esteja vazia. Como um competidor
+pode solucionar várias questões antes de ter acesso ao computador, ele pode colocar seu nome várias
+vezes na folha, uma vez para cada questão solucionada.
 
-    Outra ação que os competidores podem tomar durante a prova é ir para a sala de coffee break. Visto
-    que não há muito espaço, um número pequeno de pessoas pode ficar nela simultaneamente. Se um
-    indivíduo resolver ir para o coffee break enquanto a sala está cheia, ele fica esperando na porta até
-    que consiga entrar.
+Outra ação que os competidores podem tomar durante a prova é ir para a sala de coffee break. Visto
+que não há muito espaço, um número pequeno de pessoas pode ficar nela simultaneamente. Se um
+indivíduo resolver ir para o coffee break enquanto a sala está cheia, ele fica esperando na porta até
+que consiga entrar.
 
-    Para que o começo da prova não seja injusto, cada competidor aguarda até que todos estejam prontos
-    para começar a prova.
+Para que o começo da prova não seja injusto, cada competidor aguarda até que todos estejam prontos
+para começar a prova.
 
-    A fim de aumentar o grau de concorrência, é permitido que os times possuam mais de três membros.
+A fim de aumentar o grau de concorrência, é permitido que os times possuam mais de três membros.
 
-    Por fim, também é proposta a implementação do juíz automático, que possui uma fila de submissões a
-    serem julgadas. Todos os times enviam seus programas para o mesmo juíz, colocando-as no final da
-    fila. O juíz, por sua vez, julga as submissões assim que possível, retirando da fila na ordem FIFO
-    (first in, first out), e pode dar os vereditos AC (Accepted), TLE (Time Limit Exceeded) ou WA (Wrong
-    Answer).
+Por fim, também é proposta a implementação do juíz automático, que possui uma fila de submissões a
+serem julgadas. Todos os times enviam seus programas para o mesmo juíz, colocando-as no final da
+fila. O juíz, por sua vez, julga as submissões assim que possível, retirando da fila na ordem FIFO
+(first in, first out), e pode dar os vereditos AC (Accepted), TLE (Time Limit Exceeded) ou WA (Wrong
+Answer).
 
 \section{Estrutura do Código}
-	A implementação em C foi compilada com o seguinte comando shell, incluído no código fonte no arquivo
-	\code{run}:
+A implementação em C foi compilada e testada no GCC versão 7.5.0. O comando de compilação usado está no
+arquivo \code{run}, mas várias flags lá não são necessárias para o funcionamento do programa. 
 
-	\begin{lstlisting}[language=bash, caption=run]
-gcc -DCOLOR -pthread -g \
-    -Wall -pedantic -Wextra -Wshadow -fsanitize=address,undefined \
-    -o out main.c
-	\end{lstlisting}
+É possível omitir a flag \code{-DCOLOR}, caso o terminal não tenha suporte aos códigos de escape de
+cor ANSI\cite{ansi_color}, mas a flag é recomendada, para deixar as mensagens de saída mais fáceis de
+se identificar visualmente.
 
-	É possível omitir a flag \code{-DCOLOR}, caso o terminal não tenha suporte aos códigos de escape de
-	cor ANSI\cite{ansi_color}, mas a flag é recomendada, para deixar as mensagens de saída mais fáceis de
-	se identificar visualmente. Além disso, foi utilizado GCC versão 7.5.0.
-
-	O código foi dividido em módulos, mas a maior parte da implementação dos comportamentos descritos no
-	problema proposto está no arquivo \code{main.c}.
+O código foi dividido em módulos, mas a parte mais interessante, do ponto de vista do trabalho, está
+no arquivo \code{main.c}.
 
 \section{Solução}
 
+\subsection{Variáveis de Condição}
+Como toda variável de condição deve ter um lock associado, o arquivo \code{cond.h} define o tipo
+\code{struct cond_t}, que agrega uma \code{pthread_cond_t} e um \code{pthread_mutex_t}. Nas próximas
+seções, pode-se assumir que toda variável de condição é do tipo \code{struct cond_t} e possui um
+mutex associado.
+
 \subsection{Comportamento dos Competidores}
-	No início do programa, são criadas $N$ threads, uma para cada competidor. Há várias variáveis
-	associadas ao comportamento dos competidores, % TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-	Há vários requerimentos que dizem respeito ao comportamento dos competidores.
+No início do programa, são criadas $N$ threads, uma para cada competidor. As variáveis associadas 
+
+\subsubsection{Começo da Prova}
+Foi utilizada uma barreira (\code{pthread_barrier_t comeco_da_prova}) com $N + 1$ permissões para garantir que todos os competidores e o juíz
+estão prontos antes de começar a prova.
+
+\subsubsection{Implementação do Estado Pensando}
+Em um primeiro momento, poderíamos supor que, para implementar a ação "um competidor pensa em um
+problema até achar a solução", seria suficiente chamar um \code{sleep}. Considere, no entanto, a
+seguinte situação, onde há dois competidores do mesmo time, Alice e Bob:
+
+\begin{itemize}
+	\item Alice resolve uma questão. Não há ninguém no computador, então ela começa a escrever o
+		código.
+	\item Bob resolve uma questão. Como Alice, está no computador, ele coloca seu nome na fila e
+		volta a pensar.
+	\item Alice termina de escrever o código. Ela verifica que Bob está na lista e o chama para o
+		computador.
+	\item Bob, antes de resolver sua segunda questão, fica de posse do computador e começa a
+		escrever.
+\end{itemize}
+
+Se Bob estivesse em um \code{sleep} quando Alice o chama, seria impossível implementar o último item.
+
+Para resolver essa situação, cada competidor possui uma fila de eventos, nomeada \code{eventos[i]}, e
+uma variável de condição \code{sinal[i]}. Os eventos recebidos são do tipo \code{evento_t} e podem
+ser um \code{Alarme} ou uma \code{PermissaoComputador}. Desse modo, em vez do competidor pensar em
+uma questão enquanto está no \code{sleep}, é criada uma thread, chamada de alarme, pormeio da função
+\code{acordar_em}, que envia um evento do tipo \code{Alarme} depois que um determinado tempo passa.
+Assim, a thread do competidor pode entrar em um \code{pthread_cond_wait} para esperar tanto um sinal
+de \code{Alarme} quanto uma \code{PermissaoComputador}, como no código abaixo.
+
+\begin{lstlisting}[caption=Implementação da espera por um evento no código do competidor]
+for (;;) {
+	m_lock(&sinal[id].lock);
+	// Esperamos um sinal
+	while (eventos[id].len == 0)
+	pthread_cond_wait(&sinal[id].cond, &sinal[id].lock);
+
+	// E pegamos o primeiro evento do deque
+	void* evt_pointer = d_pop_front(&eventos[id]);
+	evento_t evt = *(evento_t*)evt_pointer; // copia (!) o evento
+	free(evt_pointer);
+	m_unlock(&sinal[id].lock);
+
+	printf("[time %d] O competidor %d recebeu um evento do tipo %s\n"
+		, team[id], id, evento2str[evt]);
+
+		// ... handling do evento `evt` ...
+
+		// Volta a pensar em um problema
+		alarme_id[id] = acordar_em(rand_int(4, 11), id);
+	}
+	\end{lstlisting}
+
+	As threads alarme são definidas no arquivo \code{alarme.h}. 
 
 	\subsubsection{Acesso Exclusivo ao Computador}
-	
-	\subsubsection{}
+	Para garantir que apenas um competidor do time possui acesso ao computador por vez, é criado um lock
+	\code{quer_computador[i]} e uma variável \code{alguem_no_pc[i]} para cada time. Para entender por que
+	não foi utilizado um lock \code{computador[i]}, que indicaria se há alguém do time \code{i} no
+	computador, considere a seguinte situação, onde Alice e Bob são membros do mesmo time:
+
+	\begin{itemize}
+		\item Alice está no computador
+		\item Bob resolve um problema e tenta entrar no computador com \code{trylock} em
+			\code{computador[i]}, mas não consegue. Ele deve colocar seu nome na fila, mas antes\dots
+		\item Alice sai do computador, mas não há ninguém na fila do computador
+		\item Bob coloca seu nome na fila, mas Alice não o chama!
+	\end{itemize}
+
+	A partir dessa situação, fica claro que os competidores devem estar de posse de um lock tanto para
+	tentar ficar de posse do computador quanto para saírem dele. Esse lock é o \code{quer_computador[i]}
+	\footnote{O nome não é ideal, visto que quem quer sair do computador precisa estar de posse dele}.
 
 	\subsubsection{Coffee Break}
 	O alarme que indica que um competidor conseguiu resolver uma questão foi reaproveitado para a
@@ -151,15 +218,17 @@ gcc -DCOLOR -pthread -g \
 	break, depois executam um \code{sem_post} para sair da sala e retornam da função.
 
 
-\subsection{Comportamento do Juíz Automático}
+	\subsection{Comportamento do Juíz Automático}
+	O juíz automático é implementado como uma thread \code{juiz}, que espera sinais da variável de
+	condição \code{cond_juiz} e tira submissões da fila \code{fila_juiz} para julgá-las. O processo de
+	julgamento é feito com um simples \code{sleep}.
 
 
-
-\section{Conclusão}
+	\section{Conclusão}
 
 % TODO:
 
-\medskip
-\printbibliography
+	\medskip
+	\printbibliography
 
-\end{document}
+	\end{document}
