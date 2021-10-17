@@ -280,6 +280,7 @@ void achou_solucao(int id) {
 	if (!alguem_no_pc[t]) {
 		// Conseguimos pegar o computador
 		alguem_no_pc[t] = true;
+		m_unlock(&quer_computador[t]);
 		escreve_codigo(id);
 	} else {
 		// Outro membro do time já está usando o computador.
