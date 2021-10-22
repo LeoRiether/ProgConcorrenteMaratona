@@ -74,9 +74,17 @@
 %--Paper--
 
 \section{Introdução}
+Em muitas situações da vida real, vemos vários indivíduos agindo concorrentemente, de forma que eles
+precisam se comunicar e compartilhar recursos.
 
-% TODO:
-Lorem Impsum
+Nesse trabalho, é proposta uma dessas situações e implementada uma simulação em linguagem C, que modela
+os indivíduos como threads e garante que o programa não tem condições de corrida por meio de locks e
+variáveis de condição definidos na biblioteca pthreads\cite{pthreads}, além de semáforos da biblioteca
+semaphore\cite{semaphore}.
+
+Depois disso, são analisados problemas que surgiram durante a implementação e explicadas suas respectivas
+soluções.
+
 
 \section{Problema Proposto}
 O contexto do problema proposto para o trabalho é o de uma maratona de programação, estilo Maratona
@@ -116,7 +124,7 @@ Answer).
 
 \section{Estrutura do Código}
 A implementação em C foi compilada e testada no GCC versão 7.5.0. O comando de compilação usado está no
-arquivo \code{run}, mas várias flags lá não são necessárias para o funcionamento do programa. 
+arquivo \code{run}, mas várias flags lá não são necessárias para o funcionamento do programa.
 
 É possível omitir a flag \code{-DCOLOR}, caso o terminal não tenha suporte aos códigos de escape de
 cor ANSI\cite{ansi_color}, mas a flag é recomendada, para deixar as mensagens de saída mais fáceis de
@@ -169,31 +177,31 @@ de \code{Alarme} quanto uma \code{PermissaoComputador}, como no código abaixo.
 
 \begin{lstlisting}[caption=Implementação da espera por um evento no código do competidor]
 for (;;) {
-	m_lock(&sinal[id].lock);
-	// Esperamos um sinal
-	while (eventos[id].len == 0)
-	pthread_cond_wait(&sinal[id].cond, &sinal[id].lock);
+  m_lock(&sinal[id].lock);
+  // Esperamos um sinal
+  while (eventos[id].len == 0)
+  pthread_cond_wait(&sinal[id].cond, &sinal[id].lock);
 
-	// E pegamos o primeiro evento do deque
-	void* evt_pointer = d_pop_front(&eventos[id]);
-	evento_t evt = *(evento_t*)evt_pointer; // copia (!) o evento
-	free(evt_pointer);
-	m_unlock(&sinal[id].lock);
+  // E pegamos o primeiro evento do deque
+  void* evt_pointer = d_pop_front(&eventos[id]);
+  evento_t evt = *(evento_t*)evt_pointer; // copia (!) o evento
+  free(evt_pointer);
+  m_unlock(&sinal[id].lock);
 
-	printf("[time %d] O competidor %d recebeu um evento do tipo %s\n"
-		, team[id], id, evento2str[evt]);
+  printf("[time %d] O competidor %d recebeu um evento do tipo %s\n"
+    , team[id], id, evento2str[evt]);
 
-		// ... handling do evento `evt` ...
+  // ... handling do evento `evt` ...
 
-		// Volta a pensar em um problema
-		alarme_id[id] = acordar_em(rand_int(4, 11), id);
-	}
+  // Volta a pensar em um problema
+  alarme_id[id] = acordar_em(rand_int(4, 11), id);
+}
 	\end{lstlisting}
 
 	Além disso, quando Alice dá a permissão para Bob usar o PC, ela envia um evento do tipo
-	\code{PermissaoComputador} 
+	\code{PermissaoComputador}
 
-	As threads alarme são definidas no arquivo \code{alarme.h}. 
+	As threads alarme são definidas no arquivo \code{alarme.h}.
 
 	\subsubsection{Acesso Exclusivo ao Computador}
 	Para garantir que apenas um competidor do time possui acesso ao computador por vez, é criado um lock
@@ -235,10 +243,26 @@ for (;;) {
 
 
 	\section{Conclusão}
+	Nesse projeto, foi proposta e desenvolvida uma simulação de uma maratona de programação estilo
+	Maratona SBC e ICPC, que reproduz o comportamento de vários times de competidores e um juíz
+	automático. Os agentes precisam compartilhar recursos, como o computador e a fila do juíz, o que leva
+	a diversas situações onde é necessário o uso de locks, semáforos e variáveis de condição para
+	garantir a corretude do programa, com ausência de condições de corrida.
 
-% TODO:
+	Foram também explicadas decisões e detalhes de implementação, como o por quê da criação de threads
+	alarme e da utilização do lock \code{quer_computador[i]}.
+
+	Apesar dessa implementação ser possivelmente a primeira e última simulação de uma maratona de
+	programação, as ideias desenvolvidas na resolução dos problemas que apareceram no desenvolvimento
+	podem ser utilizadas em vários programas "da vida real", sem uma grande diferença na implementação.
+	Por exemplo, a utilização da fila de eventos dos competidores, que podem receber eventos Alarme ou
+	PermissaoComputador, é parecida com a utilização de canais com a função \code{time.After} em
+	Golang\cite{golang}.
+
+
 
 	\medskip
 	\printbibliography
+
 
 	\end{document}
