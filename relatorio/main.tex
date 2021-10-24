@@ -93,7 +93,7 @@ SBC de Programação\cite{maratonasbc} ou ICPC\cite{icpc}.
 Em uma maratona, vários times de três competidores possuem uma prova com diversos problemas para
 resolver.  À medida que os programadores encontram as soluções, eles precisam escrever um programa
 para cada questão que resolva o problema e passe em todos os casos de teste. Ao terminar de escrever
-um código, o competidor a envia ao juíz automático, que demora um tempo considerável para gerar o
+um código, o competidor a envia ao juiz automático, que demora um tempo considerável para gerar o
 veredito (aceita ou rejeita a solução).
 
 Cada time possui apenas um computador, por isso no máximo uma pessoa do time pode utilizá-lo em um
@@ -101,7 +101,7 @@ dado instante de tempo\footnote{Nas últimas competições, virtuais, esse não 
 competições presenciais tradicionais isso é verdade.}. Para deixar a utilização do computador mais
 justa, os times seguem a seguinte estratégia: se membro do time encontrar a solução para uma questão,
 mas outra pessoa já está no computador, ele escreve seu nome em uma folha de papel, que servirá de
-fila. Assim que a pessoa de posse do computador acaba de escrever o código e o envia ao juíz, ela
+fila. Assim que a pessoa de posse do computador acaba de escrever o código e o envia ao juiz, ela
 verifica a folha de papel e chama o primeiro da fila, caso ela não esteja vazia. Como um competidor
 pode solucionar várias questões antes de ter acesso ao computador, ele pode colocar seu nome várias
 vezes na folha, uma vez para cada questão solucionada.
@@ -116,9 +116,9 @@ para começar a prova.
 
 A fim de aumentar o grau de concorrência, é permitido que os times possuam mais de três membros.
 
-Por fim, também é proposta a implementação do juíz automático, que possui uma fila de submissões a
-serem julgadas. Todos os times enviam seus programas para o mesmo juíz, colocando-as no final da
-fila. O juíz, por sua vez, julga as submissões assim que possível, retirando da fila na ordem FIFO
+Por fim, também é proposta a implementação do juiz automático, que possui uma fila de submissões a
+serem julgadas. Todos os times enviam seus programas para o mesmo juiz, colocando-as no final da
+fila. O juiz, por sua vez, julga as submissões assim que possível, retirando da fila na ordem FIFO
 (first in, first out), e pode dar os vereditos AC (Accepted), TLE (Time Limit Exceeded) ou WA (Wrong
 Answer).
 
@@ -146,7 +146,7 @@ No início do programa, são criadas $N$ threads, uma para cada competidor. A im
 detalhada nas próximas subseções.
 
 \subsubsection{Começo da Prova}
-Foi utilizada uma barreira (\code{pthread_barrier_t comeco_da_prova}) com $N + 1$ permissões para garantir que todos os competidores e o juíz
+Foi utilizada uma barreira (\code{pthread_barrier_t comeco_da_prova}) com $N + 1$ permissões para garantir que todos os competidores e o juiz
 estão prontos antes de começar a prova.
 
 \subsubsection{Implementação do Estado Pensando}
@@ -233,21 +233,21 @@ for (;;) {
 	break, depois executam um \code{sem_post} para sair da sala e retornam da função.
 
 
-	\subsection{Comportamento do Juíz Automático}
-	O juíz automático é implementado como uma thread \code{juiz}, que espera sinais da variável de
+	\subsection{Comportamento do Juiz Automático}
+	O juiz automático é implementado como uma thread \code{juiz}, que espera sinais da variável de
 	condição \code{cond_juiz} e tira submissões da fila \code{fila_juiz} para julgá-las. O processo de
 	julgamento é feito com um simples \code{sleep}.
 
-	Enquanto o juíz julga uma solução, ele não está de posse do lock da fila, para que os competidores
+	Enquanto o juiz julga uma solução, ele não está de posse do lock da fila, para que os competidores
 	possam adquirir esse lock e colocar mais submissões na fila.
 
 
 	\section{Conclusão}
 	Nesse projeto, foi proposta e desenvolvida uma simulação de uma maratona de programação estilo
-	Maratona SBC e ICPC, que reproduz o comportamento de vários times de competidores e um juíz
-	automático. Os agentes precisam compartilhar recursos, como o computador e a fila do juíz, o que leva
+	Maratona SBC e ICPC, que reproduz o comportamento de vários times de competidores e um juiz
+	automático. Os agentes precisam compartilhar recursos, como o computador e a fila do juiz, o que leva
 	a diversas situações onde é necessário o uso de locks, semáforos e variáveis de condição para
-	garantir a corretude do programa, com ausência de condições de corrida.
+	garantir a correção do programa, com ausência de condições de corrida.
 
 	Foram também explicadas decisões e detalhes de implementação, como o por quê da criação de threads
 	alarme e da utilização do lock \code{quer_computador[i]}.
@@ -266,3 +266,4 @@ for (;;) {
 
 
 	\end{document}
+

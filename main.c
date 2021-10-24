@@ -44,7 +44,7 @@ void print_time() {
 }
 
 //--------------------------------------------------------------
-// Definições de variáveis dos competidores e juíz automático
+// Definições de variáveis dos competidores e juiz automático
 //--------------------------------------------------------------
 const char* evento2str[] = { "Alarme", "PermissaoComputador" };
 typedef enum evento_t {
@@ -79,7 +79,7 @@ void* juiz();
 //--------------------------------------------------------------
 void init() {
 	color_init();
-	pthread_barrier_init(&comeco_da_prova, 0, N + 1); // N competidores em 1 juíz
+	pthread_barrier_init(&comeco_da_prova, 0, N + 1); // N competidores em 1 juiz
 	sem_init(&coffee_break, 0, MAX_COFFEE);
 	for (int i = 0; i < TIMES; i++) {
 		alguem_no_pc[i] = 0;
@@ -228,9 +228,9 @@ void escreve_codigo(int id) {
 
 	sleep(rand_int(8, 14));
 
-	cyan(); printf("[time %d] %d acabou de escrever a solução e vai submetê-la no juíz\n", t, id); reset();
+	cyan(); printf("[time %d] %d acabou de escrever a solução e vai submetê-la no juiz\n", t, id); reset();
 
-	// Envia o código ao juíz
+	// Envia o código ao juiz
 	m_lock(&cond_juiz.lock);
 		int* team_id = (int*)malloc(sizeof(int));
 		*team_id = t;
@@ -314,12 +314,12 @@ void entrar_no_coffee_break(int id) {
 }
 
 //--------------------------------------------------------------
-// Comportamento do juíz automático
+// Comportamento do juiz automático
 //--------------------------------------------------------------
 
 void* juiz() {
 	color_begin();
-	green_bg(); printf("Juíz pronto"); reset();
+	green_bg(); printf("Juiz pronto"); reset();
 	printf("\n");
 	reset();
 
